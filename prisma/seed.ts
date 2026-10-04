@@ -33,7 +33,7 @@ async function main() {
   let sys = await prisma.user.findUnique({ where: { email: "system@familyportal.local" } });
   if (!sys) {
     sys = await prisma.user.create({
-      data: { name: "Family Portal", email: "system@familyportal.local", password: await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10) },
+      data: { name: "Schedule Portal", email: "system@familyportal.local", password: await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10) },
     });
   }
   const uid = sys.id;

@@ -9,7 +9,7 @@ passwords. Built with Next.js, Prisma, and Auth.js.
 This is the public demo version. All groups and events in the seed data are
 fictional.
 
-**Live demo:** <https://family-portal-demo.up.railway.app>. Register with any
+**Live demo:** <https://schedule-portal-demo.up.railway.app>. Register with any
 email (nothing is verified or sent), then open **Groups** to join one of the
 demo's public groups and see its calendar. It is a public sandbox that anyone
 can sign up to, so do not store real passwords or personal details in it.
