@@ -130,7 +130,7 @@ export default function PasswordsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold" style={{ color: "var(--nd-navy)" }}>Shared Passwords</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Family credentials vault — passwords require identity verification to view.</p>
+          <p className="text-sm text-gray-500 mt-0.5">Shared credentials vault — passwords require identity verification to view.</p>
         </div>
         <button onClick={() => { setShowAdd(true); setFormError(""); }}
           className="px-4 py-2 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition"

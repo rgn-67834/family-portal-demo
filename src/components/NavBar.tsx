@@ -17,7 +17,7 @@ export default function NavBar({ user }: Props) {
     <nav className="text-white px-4 py-3 shadow" style={{ backgroundColor: "var(--nd-navy)" }}>
       <div className="flex items-center justify-between">
         <Link href="/dashboard" className="text-xl font-bold tracking-tight" style={{ color: "var(--nd-gold)" }}>
-          Family Portal
+          Schedule Portal
         </Link>
 
         {/* Desktop nav */}

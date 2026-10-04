@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { approvedGroupNames, canSeeEvent } from "@/lib/groups";
+import { approvedGroupNames, canSeeEvent, visibleGroupNames } from "@/lib/groups";
 import { buildIcs } from "@/lib/ics";
 
 // The calendar subscription feed. There is no login here: the token in the URL
@@ -19,18 +19,19 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tok
     include: { attendees: { select: { userId: true } } },
     orderBy: { startDate: "asc" },
   });
+  const isAdmin = user.role === "admin";
   const visible = events.filter(ev =>
     canSeeEvent(
       { family: ev.family, creatorId: ev.creatorId, attendeeIds: ev.attendees.map(a => a.userId) },
-      { id: user.id, isAdmin: user.role === "admin" },
+      { id: user.id, isAdmin },
       myGroups,
     )
   );
 
-  return new NextResponse(buildIcs("Family Portal", visible), {
+  return new NextResponse(buildIcs("Schedule Portal", visible.map(ev => ({ ...ev, family: visibleGroupNames(ev.family, isAdmin, myGroups) }))), {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": 'inline; filename="family-portal.ics"',
+      "Content-Disposition": 'inline; filename="schedule-portal.ics"',
       "Cache-Control": "no-store",
     },
   });

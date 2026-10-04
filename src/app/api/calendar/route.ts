@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notifyEventChange } from "@/lib/email";
 import { splitGroups } from "@/lib/group-colors";
-import { approvedGroupNames, canSeeEvent } from "@/lib/groups";
+import { approvedGroupNames, canSeeEvent, visibleGroupNames } from "@/lib/groups";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -26,11 +26,11 @@ export async function GET(req: NextRequest) {
     },
     include: {
       creator: { select: { id: true, name: true, image: true } },
-      attendees: { include: { user: { select: { id: true, name: true, image: true, familyGroup: true } } } },
+      attendees: { include: { user: { select: { id: true, name: true, image: true } } } },
       children: {
         include: {
           creator: { select: { id: true, name: true, image: true } },
-          attendees: { include: { user: { select: { id: true, name: true, image: true, familyGroup: true } } } },
+          attendees: { include: { user: { select: { id: true, name: true, image: true } } } },
         },
         orderBy: { startDate: "asc" },
       },
@@ -46,7 +46,12 @@ export async function GET(req: NextRequest) {
     canSeeEvent({ family: ev.family, creatorId: ev.creatorId, attendeeIds: ev.attendees.map(a => a.user.id) }, me, myGroups)
   );
 
-  return NextResponse.json(visible);
+  // Someone tagged on an event sees it without learning which private groups it is in
+  return NextResponse.json(visible.map(ev => ({
+    ...ev,
+    family: visibleGroupNames(ev.family, me.isAdmin, myGroups),
+    children: ev.children.map(c => ({ ...c, family: visibleGroupNames(c.family, me.isAdmin, myGroups) })),
+  })));
 }
 
 export async function POST(req: NextRequest) {
@@ -65,7 +70,7 @@ export async function POST(req: NextRequest) {
     const myGroups = await approvedGroupNames(session.user.id);
     const notMine = splitGroups(family).filter(g => !myGroups.has(g));
     if (notMine.length) {
-      return NextResponse.json({ error: `You are not a member of: ${notMine.join(", ")}` }, { status: 403 });
+      return NextResponse.json({ error: "You can only use your own groups." }, { status: 403 });
     }
   }
 
@@ -95,8 +100,8 @@ export async function POST(req: NextRequest) {
     },
     include: {
       creator: { select: { id: true, name: true, image: true } },
-      attendees: { include: { user: { select: { id: true, name: true, image: true, familyGroup: true } } } },
-      children: { include: { creator: { select: { id: true, name: true, image: true } }, attendees: { include: { user: { select: { id: true, name: true, image: true, familyGroup: true } } } } } },
+      attendees: { include: { user: { select: { id: true, name: true, image: true } } } },
+      children: { include: { creator: { select: { id: true, name: true, image: true } }, attendees: { include: { user: { select: { id: true, name: true, image: true } } } } } },
     },
   });
 

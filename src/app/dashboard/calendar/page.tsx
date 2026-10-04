@@ -13,7 +13,6 @@ interface FamilyUser {
   name: string | null;
   email: string;
   image: string | null;
-  familyGroup: string | null;
 }
 
 interface CalendarEvent {
@@ -323,7 +322,7 @@ export default function CalendarPage() {
   );
 
   const filteredUsers = allUsers.filter(u =>
-    !userSearch || u.name?.toLowerCase().includes(userSearch.toLowerCase()) || u.familyGroup?.toLowerCase().includes(userSearch.toLowerCase())
+    !userSearch || u.name?.toLowerCase().includes(userSearch.toLowerCase()) || u.email.toLowerCase().includes(userSearch.toLowerCase())
   );
 
   function EventCard({ ev, indent = false }: { ev: CalendarEvent; indent?: boolean }) {
@@ -388,7 +387,7 @@ export default function CalendarPage() {
       {/* Calendar Grid */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-4 gap-2">
-          <h1 className="text-xl sm:text-2xl font-bold" style={{ color: "var(--nd-navy)" }}>Family Calendar</h1>
+          <h1 className="text-xl sm:text-2xl font-bold" style={{ color: "var(--nd-navy)" }}>Calendar</h1>
           <button onClick={() => openAdd()} className="px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition shrink-0" style={{ backgroundColor: "var(--nd-navy)" }}>
             + Add
           </button>
@@ -621,7 +620,7 @@ export default function CalendarPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Calendar</label>
                   {myGroups.length === 0 && form.groups.length === 0 ? (
-                    <p className="text-xs text-gray-400">Everyone in the portal will see this. Join a group to post to its calendar only.</p>
+                    <p className="text-xs text-gray-400">Everyone in the portal will see this. Join or create a group to post to its calendar only.</p>
                   ) : (
                     <>
                       <div className="flex flex-wrap gap-1.5">
@@ -646,7 +645,7 @@ export default function CalendarPage() {
 
                 {/* Attendee picker */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tag family members</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tag people</label>
                   {form.attendeeIds.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-2">
                       {form.attendeeIds.map(uid => {
@@ -665,7 +664,7 @@ export default function CalendarPage() {
                   )}
                   <input
                     type="text"
-                    placeholder="Search family members…"
+                    placeholder="Search people…"
                     value={userSearch}
                     onChange={e => setUserSearch(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-1 focus:outline-none"
@@ -679,7 +678,6 @@ export default function CalendarPage() {
                           <Avatar user={u} size={22} />
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium text-gray-800 truncate">{u.name}</div>
-                            <div className="text-xs text-gray-400 truncate">{u.familyGroup}</div>
                           </div>
                         </label>
                       );

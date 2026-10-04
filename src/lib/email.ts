@@ -44,7 +44,7 @@ export async function notifyEventChange(
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto">
       <div style="background:#0C2340;padding:16px 24px;border-radius:8px 8px 0 0">
-        <h2 style="color:#C99700;margin:0">Family Portal</h2>
+        <h2 style="color:#C99700;margin:0">Schedule Portal</h2>
       </div>
       <div style="background:#f9f9f9;padding:24px;border-radius:0 0 8px 8px;border:1px solid #e5e7eb">
         <p style="margin:0 0 12px">A calendar item was <strong>${actionLabel}</strong> by ${eventInfo.changedBy}:</p>
@@ -55,7 +55,7 @@ export async function notifyEventChange(
         </div>
         <p style="margin:16px 0 0;font-size:12px;color:#9ca3af">
           You're receiving this because you're tagged on this event.
-          Update your notification preferences in Family Portal settings.
+          Update your notification preferences in Schedule Portal settings.
         </p>
       </div>
     </div>
@@ -64,9 +64,9 @@ export async function notifyEventChange(
   await Promise.all(
     users.map(u =>
       transporter.sendMail({
-        from: `"Family Portal" <${process.env.SMTP_USER}>`,
+        from: `"Schedule Portal" <${process.env.SMTP_USER}>`,
         to: u.email,
-        subject: `Family Calendar: "${eventInfo.title}" was ${actionLabel}`,
+        subject: `Calendar: "${eventInfo.title}" was ${actionLabel}`,
         html,
       }).catch(err => console.error("Email send failed:", err))
     )
@@ -79,11 +79,11 @@ export async function sendPasswordResetEmail(email: string, name: string | null,
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto">
       <div style="background:#0C2340;padding:16px 24px;border-radius:8px 8px 0 0">
-        <h2 style="color:#C99700;margin:0">Family Portal</h2>
+        <h2 style="color:#C99700;margin:0">Schedule Portal</h2>
       </div>
       <div style="background:#f9f9f9;padding:24px;border-radius:0 0 8px 8px;border:1px solid #e5e7eb">
         <p>Hi ${name ?? "there"},</p>
-        <p>Someone requested a password reset for your Family Portal account. Click below to set a new password:</p>
+        <p>Someone requested a password reset for your Schedule Portal account. Click below to set a new password:</p>
         <div style="text-align:center;margin:24px 0">
           <a href="${url}" style="background:#0C2340;color:#C99700;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px">
             Reset My Password
@@ -94,9 +94,9 @@ export async function sendPasswordResetEmail(email: string, name: string | null,
     </div>
   `;
   await transporter.sendMail({
-    from: `"Family Portal" <${process.env.SMTP_USER}>`,
+    from: `"Schedule Portal" <${process.env.SMTP_USER}>`,
     to: email,
-    subject: "Family Portal — Password Reset",
+    subject: "Schedule Portal — Password Reset",
     html,
   });
 }
@@ -107,7 +107,7 @@ export async function sendTempPasswordEmail(email: string, name: string | null, 
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto">
       <div style="background:#0C2340;padding:16px 24px;border-radius:8px 8px 0 0">
-        <h2 style="color:#C99700;margin:0">Family Portal</h2>
+        <h2 style="color:#C99700;margin:0">Schedule Portal</h2>
       </div>
       <div style="background:#f9f9f9;padding:24px;border-radius:0 0 8px 8px;border:1px solid #e5e7eb">
         <p>Hi ${name ?? "there"},</p>
@@ -117,7 +117,7 @@ export async function sendTempPasswordEmail(email: string, name: string | null, 
         </div>
         <div style="text-align:center;margin:24px 0">
           <a href="${loginUrl}" style="background:#0C2340;color:#C99700;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold">
-            Sign In to Family Portal
+            Sign In to Schedule Portal
           </a>
         </div>
         <p style="color:#6b7280;font-size:13px">This temporary password can only be used once.</p>
@@ -125,9 +125,9 @@ export async function sendTempPasswordEmail(email: string, name: string | null, 
     </div>
   `;
   await transporter.sendMail({
-    from: `"Family Portal" <${process.env.SMTP_USER}>`,
+    from: `"Schedule Portal" <${process.env.SMTP_USER}>`,
     to: email,
-    subject: "Family Portal — Your Temporary Password",
+    subject: "Schedule Portal — Your Temporary Password",
     html,
   });
 }

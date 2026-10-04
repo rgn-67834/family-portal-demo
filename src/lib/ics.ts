@@ -48,7 +48,7 @@ export function buildIcs(calendarName: string, events: FeedEvent[]): string {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Family Portal//Calendar//EN",
+    "PRODID:-//Schedule Portal//Calendar//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     `X-WR-CALNAME:${escapeText(calendarName)}`,
@@ -57,7 +57,7 @@ export function buildIcs(calendarName: string, events: FeedEvent[]): string {
   ];
 
   for (const ev of events) {
-    lines.push("BEGIN:VEVENT", `UID:${ev.id}@family-portal`, `DTSTAMP:${dateTime(ev.createdAt)}`);
+    lines.push("BEGIN:VEVENT", `UID:${ev.id}@schedule-portal`, `DTSTAMP:${dateTime(ev.createdAt)}`);
 
     if (ev.allDay) {
       // All-day end dates are exclusive in iCalendar, so add a day

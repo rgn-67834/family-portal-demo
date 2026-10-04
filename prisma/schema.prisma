@@ -47,12 +47,29 @@ model CalendarFeed {
 model CalendarGroup {
   id        String   @id @default(cuid())
   name      String   @unique
+  // Public groups can be seen and asked to join by anyone signed in.
+  // Private groups are seen only by members and people an admin invited.
+  isPublic  Boolean  @default(false)
   createdAt DateTime @default(now())
 
   memberships GroupMembership[]
+  invites     GroupInvite[]
 }
 
-// status: PENDING | APPROVED      role: MEMBER | ADMIN
+// An invitation to an email address that has no account yet. It turns into
+// an INVITED membership when someone registers with that address.
+model GroupInvite {
+  groupId     String
+  email       String
+  invitedById String
+  createdAt   DateTime @default(now())
+
+  group CalendarGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, email])
+}
+
+// status: INVITED | PENDING | APPROVED      role: MEMBER | ADMIN
 model GroupMembership {
   userId    String
   groupId   String

@@ -34,8 +34,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--nd-navy)" }}>
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-1 text-center" style={{ color: "var(--nd-navy)" }}>Family Portal</h1>
-        <p className="text-center text-sm text-gray-400 mb-6">Sign in to your family account</p>
+        <h1 className="text-2xl font-bold mb-1 text-center" style={{ color: "var(--nd-navy)" }}>Schedule Portal</h1>
+        <p className="text-center text-sm text-gray-400 mb-6">Sign in to your account</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>

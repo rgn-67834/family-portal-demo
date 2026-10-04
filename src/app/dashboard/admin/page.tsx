@@ -59,7 +59,7 @@ export default function AdminPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--nd-navy)" }}>Admin — Users</h1>
-      <p className="text-sm text-gray-500 mb-6">Issue password resets for any family member. They'll be emailed a temporary password and prompted to change it on next login.</p>
+      <p className="text-sm text-gray-500 mb-6">Issue password resets for any member. They'll be emailed a temporary password and prompted to change it on next login.</p>
 
       {loading ? (
         <p className="text-gray-400">Loading…</p>

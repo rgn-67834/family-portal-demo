@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FAMILY_GROUPS } from "@/lib/demo-data";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -12,7 +11,6 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [familyGroup, setFamilyGroup] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +25,7 @@ export default function RegisterPage() {
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, familyGroup }),
+      body: JSON.stringify({ name, email, password }),
     });
 
     setLoading(false);
@@ -42,8 +40,8 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: "var(--nd-navy)" }}>
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-1 text-center" style={{ color: "var(--nd-navy)" }}>Join the Family Portal</h1>
-        <p className="text-center text-sm text-gray-400 mb-6">Create your family account</p>
+        <h1 className="text-2xl font-bold mb-1 text-center" style={{ color: "var(--nd-navy)" }}>Join Schedule Portal</h1>
+        <p className="text-center text-sm text-gray-400 mb-6">Create your account. Groups are joined by invitation after you sign in.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-2">
             <div>
@@ -100,21 +98,6 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Family Group</label>
-            <select
-              required
-              value={familyGroup}
-              onChange={(e) => setFamilyGroup(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 bg-white"
-            >
-              <option value="">Select your family…</option>
-              {FAMILY_GROUPS.map(g => (
-                <option key={g} value={g}>{g}</option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-400 mt-1">Someone already in that group approves your request to see its calendar.</p>
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button

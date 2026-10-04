@@ -8,7 +8,8 @@ export async function GET() {
 
   const users = await prisma.user.findMany({
     where: { email: { not: "system@familyportal.local" } },
-    select: { id: true, name: true, email: true, image: true, familyGroup: true },
+    // Group names are private, so the people list carries no group labels
+    select: { id: true, name: true, email: true, image: true },
     orderBy: { name: "asc" },
   });
 

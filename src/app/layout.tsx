@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Family Portal",
-  description: "Our family hub for calendars, photos, and more.",
+  title: "Schedule Portal",
+  description: "Shared calendars for the groups you belong to.",
 };
 
 export const viewport = {

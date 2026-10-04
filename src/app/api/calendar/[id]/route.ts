@@ -38,12 +38,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "You can only edit events on your own calendars." }, { status: 403 });
   }
 
-  // Groups already on the event may stay; newly added ones must be the editor's own
-  if (body.family !== undefined && user.role !== "admin") {
-    const before = new Set(splitGroups(existing.family));
-    const notMine = splitGroups(body.family).filter(g => !before.has(g) && !myGroups.has(g));
-    if (notMine.length) {
-      return NextResponse.json({ error: `You are not a member of: ${notMine.join(", ")}` }, { status: 403 });
+  // The editor chooses among their own groups. Groups on the event that they
+  // are not in (and so cannot see) are left exactly as they were.
+  let family = existing.family;
+  if (body.family !== undefined) {
+    const submitted = splitGroups(body.family);
+    if (user.role === "admin") {
+      family = submitted.join(",") || null;
+    } else {
+      const notMine = submitted.filter(g => !myGroups.has(g));
+      if (notMine.length) {
+        return NextResponse.json({ error: "You can only use your own groups." }, { status: 403 });
+      }
+      const hidden = splitGroups(existing.family).filter(g => !myGroups.has(g));
+      family = [...hidden, ...submitted].join(",") || null;
     }
   }
 
@@ -62,7 +70,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       allDay: body.allDay !== undefined ? body.allDay : existing.allDay,
       location: body.location !== undefined ? body.location : existing.location,
       assignedTo: body.assignedTo !== undefined ? body.assignedTo : existing.assignedTo,
-      family: body.family !== undefined ? (splitGroups(body.family).join(",") || null) : existing.family,
+      family,
       recurrence: body.recurrence && validRecurrence.includes(body.recurrence) ? body.recurrence : existing.recurrence,
       recurrenceEnd: body.recurrenceEnd !== undefined ? (body.recurrenceEnd ? new Date(body.recurrenceEnd) : null) : existing.recurrenceEnd,
       ...(newAttendeeIds !== undefined && {
@@ -74,8 +82,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     },
     include: {
       creator: { select: { id: true, name: true, image: true } },
-      attendees: { include: { user: { select: { id: true, name: true, image: true, familyGroup: true } } } },
-      children: { include: { creator: { select: { id: true, name: true, image: true } }, attendees: { include: { user: { select: { id: true, name: true, image: true, familyGroup: true } } } } } },
+      attendees: { include: { user: { select: { id: true, name: true, image: true } } } },
+      children: { include: { creator: { select: { id: true, name: true, image: true } }, attendees: { include: { user: { select: { id: true, name: true, image: true } } } } } },
     },
   });
 
