@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  name               String?
+  email              String    @unique
+  emailVerified      DateTime?
+  image              String?
+  password           String?
+  role               String    @default("member")
+  familyGroup        String?
+  emailNotifications  String    @default("none")
+  mustChangePassword  Boolean   @default(false)
+  resetToken          String?
+  resetTokenExpires   DateTime?
+  createdAt           DateTime  @default(now())
+
+  accounts         Account[]
+  sessions         Session[]
+  photos           Photo[]
+  events           CalendarEvent[]
+  attending        CalendarEventAttendee[]
+  sharedPasswords  SharedPassword[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model SharedPassword {
+  id        String   @id @default(cuid())
+  title     String
+  username  String?
+  password  String
+  url       String?
+  notes     String?
+  category  String?
+  family    String?
+  createdAt DateTime @default(now())
+  creatorId String
+
+  creator User @relation(fields: [creatorId], references: [id])
+}
+
+model Photo {
+  id         String   @id @default(cuid())
+  url        String
+  caption    String?
+  uploadedAt DateTime @default(now())
+  uploaderId String
+
+  uploader User @relation(fields: [uploaderId], references: [id])
+}
+
+// type: EVENT | RESERVATION | CHORE | SCHEDULE
+model CalendarEvent {
+  id          String    @id @default(cuid())
+  type        String    @default("EVENT")
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  allDay      Boolean   @default(false)
+  location    String?
+  assignedTo  String?
+  family      String?
+  parentId      String?
+  recurrence    String    @default("NONE")
+  recurrenceEnd DateTime?
+  createdAt     DateTime  @default(now())
+  creatorId   String
+
+  creator   User                    @relation(fields: [creatorId], references: [id])
+  parent    CalendarEvent?          @relation("EventChildren", fields: [parentId], references: [id])
+  children  CalendarEvent[]         @relation("EventChildren")
+  attendees CalendarEventAttendee[]
+}
+
+model CalendarEventAttendee {
+  eventId String
+  userId  String
+
+  event CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, userId])
+}
