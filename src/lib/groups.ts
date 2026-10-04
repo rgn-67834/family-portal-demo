@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { SEED_GROUPS, SEED_GROUPS_PUBLIC } from "@/lib/seed-groups";
 import { splitGroups } from "@/lib/group-colors";
+import { migrateSystemAccount } from "@/lib/system-account";
 
 // Calendar groups. An event's `family` field holds the names of the groups it
 // belongs to, comma-separated; an event with no group is visible to everyone.
@@ -25,6 +26,7 @@ export function ensureGroups(): Promise<void> {
 }
 
 async function bootstrap() {
+  await migrateSystemAccount();
   const users = await prisma.user.findMany({
     where: { familyGroup: { not: null } },
     select: { id: true, familyGroup: true },

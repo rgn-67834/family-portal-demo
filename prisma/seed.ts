@@ -30,10 +30,10 @@ async function main() {
 
   // ── System user owns seeded events ───────────────────────────────────────
   // Gets a random password nobody knows, so it can never be logged into.
-  let sys = await prisma.user.findUnique({ where: { email: "system@familyportal.local" } });
+  let sys = await prisma.user.findUnique({ where: { email: "system@scheduleportal.local" } });
   if (!sys) {
     sys = await prisma.user.create({
-      data: { name: "Schedule Portal", email: "system@familyportal.local", password: await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10) },
+      data: { name: "Schedule Portal", email: "system@scheduleportal.local", password: await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10) },
     });
   }
   const uid = sys.id;

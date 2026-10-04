@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { migrateSystemAccount } from "@/lib/system-account";
 import { demoEvents } from "@/lib/demo-data";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
@@ -29,10 +30,11 @@ export async function GET(req: NextRequest) {
   }
 
   // System user for seeded events — random password, so it can never be logged into
-  let sys = await prisma.user.findUnique({ where: { email: "system@familyportal.local" } });
+  await migrateSystemAccount();
+  let sys = await prisma.user.findUnique({ where: { email: "system@scheduleportal.local" } });
   if (!sys) {
     sys = await prisma.user.create({
-      data: { name: "Schedule Portal", email: "system@familyportal.local", password: await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10) },
+      data: { name: "Schedule Portal", email: "system@scheduleportal.local", password: await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10) },
     });
   }
   const uid = sys.id;
