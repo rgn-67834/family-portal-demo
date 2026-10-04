@@ -7,7 +7,7 @@ passwords. Built with Next.js, Prisma, and Auth.js.
 This is the public demo version. All households and events in the seed data are
 fictional.
 
-**Live demo:** <https://family-portal-demo-production.up.railway.app>. Register
+**Live demo:** <https://family-portal-demo.up.railway.app>. Register
 with any email (nothing is verified or sent) and pick a household to see the
 shared calendar. It is a public sandbox that anyone can sign up to, so do not
 store real passwords or personal details in it.
