@@ -12,8 +12,16 @@ export const FAMILY_GROUPS = [F_GRAND, F_ALEX, F_CASEY, F_TAY, F_RILEY];
 
 const F_ALL = FAMILY_GROUPS.join(",");
 
-// d(month, day) → Date in the current year, month is 1-based
-const d = (month: number, day: number) => new Date(new Date().getFullYear(), month - 1, day);
+// d(month, day) → Date, month is 1-based
+// The schedule below is written as a May–September season, then shifted so it
+// always starts a few days after the day the seed runs. That keeps the demo
+// calendar populated whenever it is seeded.
+const d = (month: number, day: number) => {
+  const now = new Date();
+  const seasonStart = new Date(now.getFullYear(), 4, 25);
+  const offsetDays = Math.round((new Date(now.getFullYear(), month - 1, day).getTime() - seasonStart.getTime()) / 86_400_000);
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + offsetDays);
+};
 
 export type DemoEvent = {
   type?: string; title: string; description?: string;
@@ -30,7 +38,7 @@ export const demoEvents = (): DemoEvent[] => [
   { title: "Taylor – Half Marathon", description: "Race day, cheering section welcome", location: "Riverfront Park", start: d(6,13), family: F_TAY },
   { type: "RESERVATION", title: "Riley & Drew – Lake House", description: "Long weekend at the lake house", location: "Lake House", start: d(6,19), end: d(6,22), family: F_RILEY },
   { type: "RESERVATION", title: "Alex & Jordan – Mountain Cabin", description: "Two-week trip", location: "Estes Park, CO", start: d(7,3), end: d(7,17), family: F_ALEX },
-  { title: "4th of July Cookout", description: "Everyone at the lake house, bring a side", location: "Lake House", start: d(7,4), family: F_ALL },
+  { title: "Lake House Cookout", description: "Everyone at the lake house, bring a side", location: "Lake House", start: d(7,4), family: F_ALL },
   { type: "RESERVATION", title: "Lake House – Lindqvist Family Week", description: "Drew's parents have the lake house this week", location: "Lake House", start: d(7,11), end: d(7,18), family: F_ALL },
   { title: "Casey's Graduation Party", start: d(8,1), family: F_CASEY },
   { type: "RESERVATION", title: "College Friend Wedding (TBD)", location: "Madison, WI", start: d(8,8), family: F_CASEY },

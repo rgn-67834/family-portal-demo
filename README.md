@@ -7,6 +7,15 @@ passwords. Built with Next.js, Prisma, and Auth.js.
 This is the public demo version. All households and events in the seed data are
 fictional.
 
+**Live demo:** <https://family-portal-demo-production.up.railway.app>. Register
+with any email (nothing is verified or sent) and pick a household to see the
+shared calendar. It is a public sandbox that anyone can sign up to, so do not
+store real passwords or personal details in it.
+
+Built with [Claude Code](https://claude.com/claude-code). I run a private
+instance of this for my own family; this repository is the same app with the
+real data replaced.
+
 ## Features
 
 - **Shared calendar**: events and reservations tagged by household, with
