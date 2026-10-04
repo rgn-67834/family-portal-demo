@@ -3,6 +3,7 @@ import Link from "next/link";
 
 const features = [
   { href: "/dashboard/calendar", label: "Calendar", icon: "📅", desc: "Shared family events, tasks & reservations" },
+  { href: "/dashboard/groups", label: "Groups", icon: "👥", desc: "Join calendar groups, pick colors & subscribe from your phone" },
   { href: "/dashboard/passwords", label: "Passwords", icon: "🔐", desc: "Shared family credentials vault" },
 ];
 

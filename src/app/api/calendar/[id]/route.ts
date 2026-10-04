@@ -2,15 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notifyEventChange } from "@/lib/email";
+import { splitGroups } from "@/lib/group-colors";
+import { approvedGroupNames } from "@/lib/groups";
 
-type SessionUser = { id: string; name?: string | null; role?: string; familyGroup?: string | null };
+type SessionUser = { id: string; name?: string | null; role?: string };
+type EditableEvent = { family: string | null; creatorId: string };
 
-function canEdit(user: SessionUser, eventFamily: string | null, attendeeUserIds: string[]): boolean {
+// Editing follows the same rule as seeing: an ungrouped event is open to
+// everyone, a grouped one to its groups' members, its creator and the people
+// tagged on it.
+function canEdit(user: SessionUser, ev: EditableEvent, attendeeUserIds: string[], myGroups: Set<string>): boolean {
   if (user.role === "admin") return true;
-  if (attendeeUserIds.includes(user.id)) return true;
-  if (!eventFamily) return true;
-  if (!user.familyGroup) return false;
-  return eventFamily.split(",").map(f => f.trim()).includes(user.familyGroup);
+  if (ev.creatorId === user.id || attendeeUserIds.includes(user.id)) return true;
+  const groups = splitGroups(ev.family);
+  return groups.length === 0 || groups.some(g => myGroups.has(g));
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -28,8 +33,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const user = session.user as SessionUser;
   const attendeeIds = existing.attendees.map(a => a.userId);
-  if (!canEdit(user, existing.family, attendeeIds)) {
-    return NextResponse.json({ error: "You can only edit your family's events." }, { status: 403 });
+  const myGroups = await approvedGroupNames(user.id);
+  if (!canEdit(user, existing, attendeeIds, myGroups)) {
+    return NextResponse.json({ error: "You can only edit events on your own calendars." }, { status: 403 });
+  }
+
+  // Groups already on the event may stay; newly added ones must be the editor's own
+  if (body.family !== undefined && user.role !== "admin") {
+    const before = new Set(splitGroups(existing.family));
+    const notMine = splitGroups(body.family).filter(g => !before.has(g) && !myGroups.has(g));
+    if (notMine.length) {
+      return NextResponse.json({ error: `You are not a member of: ${notMine.join(", ")}` }, { status: 403 });
+    }
   }
 
   const validTypes = ["EVENT", "RESERVATION", "CHORE"];
@@ -47,7 +62,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       allDay: body.allDay !== undefined ? body.allDay : existing.allDay,
       location: body.location !== undefined ? body.location : existing.location,
       assignedTo: body.assignedTo !== undefined ? body.assignedTo : existing.assignedTo,
-      family: body.family !== undefined ? body.family : existing.family,
+      family: body.family !== undefined ? (splitGroups(body.family).join(",") || null) : existing.family,
       recurrence: body.recurrence && validRecurrence.includes(body.recurrence) ? body.recurrence : existing.recurrence,
       recurrenceEnd: body.recurrenceEnd !== undefined ? (body.recurrenceEnd ? new Date(body.recurrenceEnd) : null) : existing.recurrenceEnd,
       ...(newAttendeeIds !== undefined && {
@@ -89,8 +104,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
   const user = session.user as SessionUser;
   const attendeeIds = existing.attendees.map(a => a.userId);
-  if (!canEdit(user, existing.family, attendeeIds)) {
-    return NextResponse.json({ error: "You can only delete your family's events." }, { status: 403 });
+  if (!canEdit(user, existing, attendeeIds, await approvedGroupNames(user.id))) {
+    return NextResponse.json({ error: "You can only delete events on your own calendars." }, { status: 403 });
   }
 
   const notifyIds = attendeeIds.filter(uid => uid !== session.user?.id);

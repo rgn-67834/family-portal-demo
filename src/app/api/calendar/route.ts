@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notifyEventChange } from "@/lib/email";
+import { splitGroups } from "@/lib/group-colors";
+import { approvedGroupNames, canSeeEvent } from "@/lib/groups";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -36,7 +38,15 @@ export async function GET(req: NextRequest) {
     orderBy: { startDate: "asc" },
   });
 
-  return NextResponse.json(events);
+  // Grouped events are only for approved members of one of their groups,
+  // the people tagged on them, and whoever created them
+  const me = { id: session.user.id, isAdmin: (session.user as { role?: string }).role === "admin" };
+  const myGroups = await approvedGroupNames(me.id);
+  const visible = events.filter(ev =>
+    canSeeEvent({ family: ev.family, creatorId: ev.creatorId, attendeeIds: ev.attendees.map(a => a.user.id) }, me, myGroups)
+  );
+
+  return NextResponse.json(visible);
 }
 
 export async function POST(req: NextRequest) {
@@ -48,6 +58,15 @@ export async function POST(req: NextRequest) {
 
   if (!title || !startDate) {
     return NextResponse.json({ error: "title and startDate are required" }, { status: 400 });
+  }
+
+  // An event can only be put on calendars its creator belongs to
+  if ((session.user as { role?: string }).role !== "admin") {
+    const myGroups = await approvedGroupNames(session.user.id);
+    const notMine = splitGroups(family).filter(g => !myGroups.has(g));
+    if (notMine.length) {
+      return NextResponse.json({ error: `You are not a member of: ${notMine.join(", ")}` }, { status: 403 });
+    }
   }
 
   const validTypes = ["EVENT", "RESERVATION", "CHORE"];
@@ -65,7 +84,7 @@ export async function POST(req: NextRequest) {
       allDay: allDay ?? false,
       location: location ?? null,
       assignedTo: assignedTo ?? null,
-      family: family ?? null,
+      family: splitGroups(family).join(",") || null,
       parentId: parentId ?? null,
       recurrence: validRecurrence.includes(recurrence) ? recurrence : "NONE",
       recurrenceEnd: recurrenceEnd ? new Date(recurrenceEnd) : null,

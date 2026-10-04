@@ -18,8 +18,17 @@ real data replaced.
 
 ## Features
 
-- **Shared calendar**: events and reservations tagged by household, with
-  attendees and optional email notifications
+- **Shared calendar**: events and reservations with attendees and optional
+  email notifications
+- **Calendar groups**: households and other groups have their own calendars.
+  You ask to join a group and one of its admins approves you; a grouped event
+  is seen only by that group's members, the people tagged on it and its
+  creator. Events with no group are seen by everyone.
+- **Your own colors**: each member picks the color every group shows in on
+  their calendar
+- **Subscribe from Outlook, Google or Apple Calendar**: a private link (an
+  iCalendar feed) that shows exactly the events you can see in the portal, and
+  can be replaced or turned off
 - **Accounts**: registration by household, admin user management, password
   reset by email, forced change of temporary passwords
 - **Password vault**: shared credentials encrypted at rest with a key you supply
@@ -45,8 +54,10 @@ There are no default credentials. The seed creates an admin account only when
 ## Making it yours
 
 Edit `FAMILY_GROUPS` in [`src/lib/demo-data.ts`](src/lib/demo-data.ts). That
-list drives the household picker at registration and the tags on calendar
-events.
+list drives the household picker at registration, and each name becomes a
+calendar group. The first person to join an empty group becomes its admin;
+after that, admins approve new members on the Groups page. Site admins can
+approve for any group.
 
 ## Deploy on Railway
 

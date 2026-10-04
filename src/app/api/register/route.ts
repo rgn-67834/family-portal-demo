@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { ensureGroups, requestToJoin } from "@/lib/groups";
 
 export async function POST(req: NextRequest) {
   const { name, email, password, familyGroup } = await req.json();
@@ -18,6 +19,14 @@ export async function POST(req: NextRequest) {
   const user = await prisma.user.create({
     data: { name, email, password: hashed, familyGroup: familyGroup ?? null },
   });
+
+  // Picking a household at sign-up asks to join its calendar group. Someone
+  // already in the group approves it, unless the group has nobody in it yet.
+  if (familyGroup) {
+    await ensureGroups();
+    const group = await prisma.calendarGroup.findUnique({ where: { name: String(familyGroup).trim() } });
+    if (group) await requestToJoin(user.id, group.id);
+  }
 
   return NextResponse.json({ id: user.id, email: user.email }, { status: 201 });
 }

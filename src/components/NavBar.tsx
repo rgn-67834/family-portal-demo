@@ -23,6 +23,7 @@ export default function NavBar({ user }: Props) {
         {/* Desktop nav */}
         <div className="hidden sm:flex items-center gap-5 text-sm font-medium">
           <Link href="/dashboard/calendar" className="hover:opacity-75 transition">Calendar</Link>
+          <Link href="/dashboard/groups" className="hover:opacity-75 transition">Groups</Link>
           <Link href="/dashboard/passwords" className="hover:opacity-75 transition">Passwords</Link>
           {user?.role === "admin" && (
             <Link href="/dashboard/admin" className="hover:opacity-75 transition" style={{ color: "var(--nd-gold)" }}>Admin</Link>
@@ -74,6 +75,7 @@ export default function NavBar({ user }: Props) {
       {menuOpen && (
         <div className="sm:hidden mt-3 border-t border-white/20 pt-3 flex flex-col gap-3 text-sm font-medium pb-1">
           <Link href="/dashboard/calendar" onClick={() => setMenuOpen(false)} className="hover:opacity-75">Calendar</Link>
+          <Link href="/dashboard/groups" onClick={() => setMenuOpen(false)} className="hover:opacity-75">Groups</Link>
           <Link href="/dashboard/passwords" onClick={() => setMenuOpen(false)} className="hover:opacity-75">Passwords</Link>
           {user?.role === "admin" && (
             <Link href="/dashboard/admin" onClick={() => setMenuOpen(false)} className="hover:opacity-75" style={{ color: "var(--nd-gold)" }}>Admin</Link>

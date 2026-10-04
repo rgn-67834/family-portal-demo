@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { splitGroups } from "@/lib/group-colors";
 
 type EventType = "EVENT" | "RESERVATION" | "CHORE";
 type Recurrence = "NONE" | "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
@@ -108,6 +110,7 @@ const EMPTY_FORM = {
   location: "",
   assignedTo: "",
   attendeeIds: [] as string[],
+  groups: [] as string[],
   recurrence: "NONE" as Recurrence,
   recurrenceEnd: "",
 };
@@ -155,6 +158,8 @@ export default function CalendarPage() {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [loading, setLoading] = useState(false);
   const [userSearch, setUserSearch] = useState("");
+  // The groups I belong to, and the color I chose for each
+  const [myGroups, setMyGroups] = useState<{ name: string; color: string }[]>([]);
   const locationRef = useRef<HTMLInputElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const autocompleteRef = useRef<any>(null);
@@ -167,7 +172,19 @@ export default function CalendarPage() {
   useEffect(() => { fetchEvents(); }, [fetchEvents]);
   useEffect(() => {
     fetch("/api/users").then(r => r.json()).then(setAllUsers).catch(() => {});
+    fetch("/api/groups").then(r => r.json()).then(d =>
+      setMyGroups((d.groups ?? []).filter((g: { myStatus: string }) => g.myStatus === "APPROVED"))
+    ).catch(() => {});
   }, []);
+
+  // An event takes the color of the first of its groups that I belong to
+  function groupColor(ev: CalendarEvent): string | null {
+    for (const name of splitGroups(ev.family)) {
+      const mine = myGroups.find(g => g.name === name);
+      if (mine) return mine.color;
+    }
+    return null;
+  }
 
   // Init Google Places autocomplete when modal opens and input is ready
   useEffect(() => {
@@ -239,6 +256,7 @@ export default function CalendarPage() {
       location: ev.location ?? "",
       assignedTo: ev.assignedTo ?? "",
       attendeeIds: ev.attendees.map(a => a.user.id),
+      groups: splitGroups(ev.family),
       recurrence: ev.recurrence ?? "NONE",
       recurrenceEnd: re ? fmtDate(re) : "",
     });
@@ -258,8 +276,7 @@ export default function CalendarPage() {
     const buildDt = (date: string, time: string) =>
       date ? new Date(`${date}T${time || "00:00"}:00`).toISOString() : null;
 
-    const attendedUsers = allUsers.filter(u => form.attendeeIds.includes(u.id));
-    const family = [...new Set(attendedUsers.map(u => u.familyGroup).filter(Boolean))].join(",") || null;
+    const family = form.groups.join(",") || null;
 
     const payload = {
       type: form.type,
@@ -291,6 +308,10 @@ export default function CalendarPage() {
     }));
   }
 
+  function toggleGroup(name: string) {
+    setForm(f => ({ ...f, groups: f.groups.includes(name) ? f.groups.filter(g => g !== name) : [...f.groups, name] }));
+  }
+
   function toggleExpand(id: string) {
     setExpandedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   }
@@ -312,7 +333,7 @@ export default function CalendarPage() {
     const isRecurring = ev.recurrence && ev.recurrence !== "NONE";
     return (
       <div className={indent ? "ml-4 border-l-2 pl-2 mb-1" : "mb-2"} style={indent ? { borderColor: meta.border } : {}}>
-        <div className="rounded-lg p-2.5 text-sm" style={{ backgroundColor: meta.bg, border: `1px solid ${meta.border}` }}>
+        <div className="rounded-lg p-2.5 text-sm" style={{ backgroundColor: meta.bg, border: `1px solid ${meta.border}`, borderLeft: `5px solid ${groupColor(ev) ?? meta.border}` }}>
           <div className="flex items-start justify-between gap-1">
             <div className="flex-1 min-w-0">
               <div className="font-semibold leading-snug flex items-center gap-1" style={{ color: meta.color }}>
@@ -322,6 +343,7 @@ export default function CalendarPage() {
               {ev.description && <div className="text-xs text-gray-600 mt-0.5">{ev.description}</div>}
               {ev.location && <div className="text-xs text-gray-500 mt-0.5">📍 {ev.location}</div>}
               {ev.assignedTo && <div className="text-xs text-gray-500 mt-0.5">👤 {ev.assignedTo}</div>}
+              {ev.family && <div className="text-xs text-gray-500 mt-0.5">👥 {splitGroups(ev.family).join(", ")}</div>}
               {!ev.allDay && (
                 <div className="text-xs text-gray-500 mt-0.5">
                   🕐 {fmtTime(ev.startDate)}{ev.endDate && ` – ${fmtTime(ev.endDate)}`}
@@ -404,8 +426,10 @@ export default function CalendarPage() {
                 <div className="space-y-0.5">
                   {dayEvs.slice(0, 2).map(ev => {
                     const meta = TYPE_META[ev.type];
+                    const gc = groupColor(ev);
                     return (
-                      <div key={ev.id} className="text-xs px-0.5 sm:px-1 rounded truncate leading-4 hidden sm:block" style={{ backgroundColor: meta.bg, color: meta.color }}>
+                      <div key={ev.id} className="text-xs px-0.5 sm:px-1 rounded truncate leading-4 hidden sm:block"
+                        style={{ backgroundColor: gc ? gc + "22" : meta.bg, color: meta.color, borderLeft: `3px solid ${gc ?? meta.color}` }}>
                         {ev.recurrence !== "NONE" ? "🔁" : meta.icon} {ev.title}
                       </div>
                     );
@@ -413,7 +437,7 @@ export default function CalendarPage() {
                   {dayEvs.length > 0 && (
                     <div className="flex gap-0.5 flex-wrap sm:hidden">
                       {dayEvs.slice(0, 3).map(ev => (
-                        <span key={ev.id} className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: TYPE_META[ev.type].color }} />
+                        <span key={ev.id} className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: groupColor(ev) ?? TYPE_META[ev.type].color }} />
                       ))}
                     </div>
                   )}
@@ -431,6 +455,17 @@ export default function CalendarPage() {
               <span style={{ color: meta.color }} className="font-medium">{meta.icon} {meta.label}</span>
             </div>
           ))}
+        </div>
+        <div className="flex gap-3 mt-2 flex-wrap items-center">
+          {myGroups.map(g => (
+            <div key={g.name} className="flex items-center gap-1 text-xs text-gray-600">
+              <span className="w-3 h-3 rounded-full inline-block" style={{ backgroundColor: g.color }} />
+              {g.name}
+            </div>
+          ))}
+          <Link href="/dashboard/groups" className="text-xs underline" style={{ color: "var(--nd-navy)" }}>
+            Groups, colors &amp; subscribe
+          </Link>
         </div>
       </div>
 
@@ -581,6 +616,33 @@ export default function CalendarPage() {
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
                   </div>
                 )}
+
+                {/* Which calendars the event is on */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Calendar</label>
+                  {myGroups.length === 0 && form.groups.length === 0 ? (
+                    <p className="text-xs text-gray-400">Everyone in the portal will see this. Join a group to post to its calendar only.</p>
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[...new Set([...myGroups.map(g => g.name), ...form.groups])].map(name => {
+                          const on = form.groups.includes(name);
+                          const color = myGroups.find(g => g.name === name)?.color ?? "#6b7280";
+                          return (
+                            <button key={name} type="button" onClick={() => toggleGroup(name)}
+                              className="px-2.5 py-1 rounded-full text-xs font-semibold border-2 transition"
+                              style={{ borderColor: color, backgroundColor: on ? color : "white", color: on ? "white" : color }}>
+                              {name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {form.groups.length === 0 ? "No group selected: everyone in the portal will see this." : "Only members of the selected groups, and anyone you tag, will see this."}
+                      </p>
+                    </>
+                  )}
+                </div>
 
                 {/* Attendee picker */}
                 <div>

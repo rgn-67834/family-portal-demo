@@ -114,6 +114,7 @@ export default function RegisterPage() {
                 <option key={g} value={g}>{g}</option>
               ))}
             </select>
+            <p className="text-xs text-gray-400 mt-1">Someone already in that group approves your request to see its calendar.</p>
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button

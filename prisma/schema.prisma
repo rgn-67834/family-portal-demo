@@ -28,6 +28,43 @@ model User {
   events           CalendarEvent[]
   attending        CalendarEventAttendee[]
   sharedPasswords  SharedPassword[]
+  memberships      GroupMembership[]
+  calendarFeed     CalendarFeed?
+}
+
+// The secret in a person's calendar subscription link. One per user, created
+// when they ask for a link and deleted when they turn it off.
+model CalendarFeed {
+  token     String   @id
+  userId    String   @unique
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// A calendar group is a named set of people who share events, usually a
+// household. Events are tagged with group names in CalendarEvent.family.
+model CalendarGroup {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  memberships GroupMembership[]
+}
+
+// status: PENDING | APPROVED      role: MEMBER | ADMIN
+model GroupMembership {
+  userId    String
+  groupId   String
+  status    String   @default("PENDING")
+  role      String   @default("MEMBER")
+  color     String?
+  createdAt DateTime @default(now())
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group CalendarGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([userId, groupId])
 }
 
 model Account {
