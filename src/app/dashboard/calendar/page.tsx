@@ -603,7 +603,7 @@ export default function CalendarPage() {
                     value={form.location}
                     onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                    placeholder={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ? "Start typing to search…" : "e.g. Notre Dame Stadium"}
+                    placeholder={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ? "Start typing to search…" : "e.g. Community Center"}
                     autoComplete="off"
                   />
                 </div>
